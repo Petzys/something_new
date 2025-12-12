@@ -2,7 +2,7 @@
   "name": "Jede Woche etwas Neues",
   "short_name": "Wöchentliche Challenge",
   "description": "Bring Abwechslung in deinen Alltag mit wöchentlichen Herausforderungen",
-  "start_url": "/",
+  "start_url": "/something_new/",
   "display": "standalone",
   "background_color": "#667eea",
   "theme_color": "#667eea",
