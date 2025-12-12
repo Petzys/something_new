@@ -89,5 +89,174 @@ function displayWeeklyChallenge() {
     }
 }
 
-// Führe die Funktion aus, wenn die Seite geladen ist
-document.addEventListener('DOMContentLoaded', displayWeeklyChallenge);
+// Service Worker registrieren
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+                console.log('Service Worker registriert:', registration.scope);
+            })
+            .catch((error) => {
+                console.log('Service Worker Registrierung fehlgeschlagen:', error);
+            });
+    });
+}
+
+// Funktion zum Abrufen der aktuellen wöchentlichen Challenge
+function getCurrentChallenge() {
+    const weekNumber = getCurrentWeekNumber();
+    const challengeIndex = weekNumber - 1;
+    return weeklyChallenges[challengeIndex] || 'Keine Herausforderung verfügbar.';
+}
+
+// Funktion zum Planen wöchentlicher Benachrichtigungen
+function scheduleWeeklyNotification() {
+    if (!('Notification' in window)) {
+        console.log('Browser unterstützt keine Benachrichtigungen');
+        return;
+    }
+
+    if (Notification.permission !== 'granted') {
+        console.log('Keine Berechtigung für Benachrichtigungen');
+        return;
+    }
+
+    // Berechne Zeit bis zum nächsten Montag 8:00 Uhr
+    const now = new Date();
+    const nextMonday = new Date(now);
+    
+    // Setze auf nächsten Montag
+    const daysUntilMonday = (8 - now.getDay()) % 7;
+    nextMonday.setDate(now.getDate() + (daysUntilMonday === 0 ? 7 : daysUntilMonday));
+    nextMonday.setHours(8, 0, 0, 0);
+    
+    const timeUntilMonday = nextMonday - now;
+    
+    // Speichere die Benachrichtigungszeit
+    localStorage.setItem('nextNotificationTime', nextMonday.toISOString());
+    
+    console.log('Nächste Benachrichtigung geplant für:', nextMonday.toLocaleString('de-DE'));
+    
+    // Setze Timeout für die nächste Benachrichtigung
+    setTimeout(() => {
+        showWeeklyNotification();
+        // Plane die nächste Benachrichtigung (in einer Woche)
+        scheduleWeeklyNotification();
+    }, timeUntilMonday);
+}
+
+// Funktion zum Anzeigen der wöchentlichen Benachrichtigung
+function showWeeklyNotification() {
+    if (!('Notification' in window) || Notification.permission !== 'granted') {
+        return;
+    }
+
+    const challenge = getCurrentChallenge();
+    const weekNumber = getCurrentWeekNumber();
+    
+    // Verwende Service Worker für Benachrichtigungen, falls verfügbar
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.ready.then((registration) => {
+            registration.showNotification('🫎 Neue wöchentliche Challenge!', {
+                body: `Woche ${weekNumber}: ${challenge}`,
+                icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23667eea'/><text y='.9em' font-size='90' x='50%' text-anchor='middle'>🫎</text></svg>",
+                badge: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23667eea'/><text y='.9em' font-size='90' x='50%' text-anchor='middle'>🫎</text></svg>",
+                vibrate: [200, 100, 200],
+                tag: 'weekly-challenge-' + weekNumber,
+                requireInteraction: false,
+                data: {
+                    url: window.location.origin
+                }
+            });
+        });
+    } else {
+        // Fallback für normale Benachrichtigungen
+        new Notification('🫎 Neue wöchentliche Challenge!', {
+            body: `Woche ${weekNumber}: ${challenge}`,
+            icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23667eea'/><text y='.9em' font-size='90' x='50%' text-anchor='middle'>🫎</text></svg>",
+            tag: 'weekly-challenge-' + weekNumber
+        });
+    }
+}
+
+// Funktion zum Aktualisieren des Benachrichtigungsbuttons
+function updateNotificationButton() {
+    const button = document.getElementById('notificationButton');
+    const info = document.getElementById('notificationInfo');
+    
+    if (!button) return;
+    
+    if (!('Notification' in window)) {
+        button.textContent = '🔕 Benachrichtigungen nicht verfügbar';
+        button.disabled = true;
+        button.classList.add('denied');
+        info.textContent = 'Dein Browser unterstützt keine Benachrichtigungen.';
+        return;
+    }
+    
+    if (Notification.permission === 'granted') {
+        button.textContent = '✅ Benachrichtigungen aktiviert';
+        button.classList.add('granted');
+        button.disabled = true;
+        
+        const nextNotification = localStorage.getItem('nextNotificationTime');
+        if (nextNotification) {
+            const date = new Date(nextNotification);
+            info.textContent = `Nächste Benachrichtigung: ${date.toLocaleDateString('de-DE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
+        } else {
+            info.textContent = 'Du erhältst jeden Montag um 8:00 Uhr eine neue Challenge!';
+        }
+    } else if (Notification.permission === 'denied') {
+        button.textContent = '🔕 Benachrichtigungen blockiert';
+        button.classList.add('denied');
+        button.disabled = true;
+        info.textContent = 'Benachrichtigungen wurden blockiert. Bitte erlaube sie in deinen Browser-Einstellungen.';
+    } else {
+        button.textContent = '🔔 Benachrichtigungen aktivieren';
+        button.disabled = false;
+    }
+}
+
+// Benachrichtigungsbutton Event-Handler
+function handleNotificationButton() {
+    const button = document.getElementById('notificationButton');
+    
+    if (!button) return;
+    
+    button.addEventListener('click', async () => {
+        if (!('Notification' in window)) {
+            alert('Dein Browser unterstützt keine Benachrichtigungen.');
+            return;
+        }
+        
+        try {
+            const permission = await Notification.requestPermission();
+            
+            if (permission === 'granted') {
+                console.log('Benachrichtigungsberechtigung erteilt');
+                updateNotificationButton();
+                scheduleWeeklyNotification();
+                
+                // Zeige sofort eine Test-Benachrichtigung
+                showWeeklyNotification();
+            } else {
+                console.log('Benachrichtigungsberechtigung verweigert');
+                updateNotificationButton();
+            }
+        } catch (error) {
+            console.error('Fehler beim Anfordern der Benachrichtigungsberechtigung:', error);
+        }
+    });
+}
+
+// Führe die Funktionen aus, wenn die Seite geladen ist
+document.addEventListener('DOMContentLoaded', () => {
+    displayWeeklyChallenge();
+    updateNotificationButton();
+    handleNotificationButton();
+    
+    // Wenn bereits Berechtigung vorhanden, plane Benachrichtigungen
+    if ('Notification' in window && Notification.permission === 'granted') {
+        scheduleWeeklyNotification();
+    }
+});

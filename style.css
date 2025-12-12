@@ -81,6 +81,58 @@ footer {
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
+/* Notification Section Styles */
+.notification-section {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.notification-button {
+    background: white;
+    color: #667eea;
+    border: none;
+    border-radius: 50px;
+    padding: 15px 30px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    margin-bottom: 15px;
+}
+
+.notification-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.notification-button:active {
+    transform: translateY(0);
+}
+
+.notification-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.notification-button.granted {
+    background: #4caf50;
+    color: white;
+}
+
+.notification-button.denied {
+    background: #f44336;
+    color: white;
+}
+
+.notification-info {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+    max-width: 400px;
+    margin: 0 auto;
+    line-height: 1.5;
+}
+
 /* Mobile responsive design */
 @media (max-width: 600px) {
     h1 {
@@ -93,6 +145,15 @@ footer {
     
     .challenge-text {
         font-size: 1.25rem;
+    }
+    
+    .notification-button {
+        font-size: 0.9rem;
+        padding: 12px 24px;
+    }
+    
+    .notification-info {
+        font-size: 0.85rem;
     }
 }
 
@@ -107,5 +168,14 @@ footer {
     
     .challenge-card {
         padding: 25px 15px;
+    }
+    
+    .notification-button {
+        font-size: 0.85rem;
+        padding: 10px 20px;
+    }
+    
+    .notification-info {
+        font-size: 0.8rem;
     }
 }
