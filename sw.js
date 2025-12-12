@@ -53,7 +53,7 @@ self.addEventListener('fetch', (event) => {
 
         return fetch(fetchRequest).then((response) => {
           // Prüfe, ob die Antwort gültig ist
-          if (!response || response.status !== 200 || response.type !== 'basic') {
+          if (!response || response.status !== 200 || (response.type !== 'basic' && response.type !== 'cors')) {
             return response;
           }
 

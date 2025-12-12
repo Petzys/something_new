@@ -106,7 +106,10 @@ if ('serviceWorker' in navigator) {
 function getCurrentChallenge() {
     const weekNumber = getCurrentWeekNumber();
     const challengeIndex = weekNumber - 1;
-    return weeklyChallenges[challengeIndex] || 'Keine Herausforderung verfügbar.';
+    return {
+        weekNumber: weekNumber,
+        challenge: weeklyChallenges[challengeIndex] || 'Keine Herausforderung verfügbar.'
+    };
 }
 
 // Funktion zum Planen wöchentlicher Benachrichtigungen
@@ -125,8 +128,9 @@ function scheduleWeeklyNotification() {
     const now = new Date();
     const nextMonday = new Date(now);
     
-    // Setze auf nächsten Montag
-    const daysUntilMonday = (8 - now.getDay()) % 7;
+    // Setze auf nächsten Montag (Montag = 1, Sonntag = 0)
+    const currentDay = now.getDay();
+    const daysUntilMonday = currentDay === 0 ? 1 : (8 - currentDay) % 7;
     nextMonday.setDate(now.getDate() + (daysUntilMonday === 0 ? 7 : daysUntilMonday));
     nextMonday.setHours(8, 0, 0, 0);
     
@@ -137,6 +141,8 @@ function scheduleWeeklyNotification() {
     
     console.log('Nächste Benachrichtigung geplant für:', nextMonday.toLocaleString('de-DE'));
     
+    // Hinweis: setTimeout funktioniert nur solange die Seite geöffnet ist
+    // Für persistente Benachrichtigungen wäre ein Backend mit Push API erforderlich
     // Setze Timeout für die nächste Benachrichtigung
     setTimeout(() => {
         showWeeklyNotification();
@@ -151,8 +157,7 @@ function showWeeklyNotification() {
         return;
     }
 
-    const challenge = getCurrentChallenge();
-    const weekNumber = getCurrentWeekNumber();
+    const { weekNumber, challenge } = getCurrentChallenge();
     
     // Verwende Service Worker für Benachrichtigungen, falls verfügbar
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
