@@ -1,11 +1,12 @@
 // Service Worker für PWA mit Offline-Unterstützung
 const CACHE_NAME = 'weekly-challenge-v1';
+const pathPrefix = '/something_new/';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/script.js',
-  '/manifest.json'
+  pathPrefix,
+  pathPrefix + 'index.html',
+  pathPrefix + 'style.css',
+  pathPrefix + 'script.js',
+  pathPrefix + 'manifest.json'
 ];
 
 // Installation des Service Workers
@@ -68,7 +69,7 @@ self.addEventListener('fetch', (event) => {
           return response;
         }).catch(() => {
           // Falls Offline und keine gecachte Version vorhanden
-          return caches.match('/index.html');
+          return caches.match(pathPrefix + 'index.html');
         });
       })
   );
@@ -86,13 +87,13 @@ self.addEventListener('notificationclick', (event) => {
         // Wenn bereits ein Fenster offen ist, fokussiere es
         for (let i = 0; i < clientList.length; i++) {
           const client = clientList[i];
-          if (client.url === '/' && 'focus' in client) {
+          if (client.url === pathPrefix && 'focus' in client) {
             return client.focus();
           }
         }
         // Ansonsten öffne ein neues Fenster
         if (clients.openWindow) {
-          return clients.openWindow('/');
+          return clients.openWindow(pathPrefix);
         }
       })
   );

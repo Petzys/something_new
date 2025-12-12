@@ -54,6 +54,8 @@ const weeklyChallenges = [
     "Schaue dir Fotos aus deiner Kindheit an!",
 ];
 
+const pathPrefix = '/something_new/';
+
 // Funktion zur Berechnung der aktuellen Woche im Jahr (1-52)
 // Verwendet eine einfache Berechnung, die das Jahr in 52 Wochen aufteilt
 function getCurrentWeekNumber() {
@@ -92,7 +94,7 @@ function displayWeeklyChallenge() {
 // Service Worker registrieren
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
+        navigator.serviceWorker.register(pathPrefix + 'sw.js')
             .then((registration) => {
                 console.log('Service Worker registriert:', registration.scope);
             })
