@@ -55,13 +55,17 @@ const weeklyChallenges = [
 ];
 
 // Funktion zur Berechnung der aktuellen Woche im Jahr (1-52)
+// Verwendet eine einfache Berechnung, die das Jahr in 52 Wochen aufteilt
 function getCurrentWeekNumber() {
     const now = new Date();
     const startOfYear = new Date(now.getFullYear(), 0, 1);
     const days = Math.floor((now - startOfYear) / (24 * 60 * 60 * 1000));
+    
+    // Berechne die Wochennummer (1-basiert)
     const weekNumber = Math.ceil((days + startOfYear.getDay() + 1) / 7);
     
     // Stelle sicher, dass die Wochennummer zwischen 1 und 52 liegt
+    // Bei Woche 53 wird Woche 52 verwendet (für konsistente 52-Wochen-Challenges)
     return Math.min(Math.max(weekNumber, 1), 52);
 }
 
@@ -70,12 +74,19 @@ function displayWeeklyChallenge() {
     const weekNumber = getCurrentWeekNumber();
     const challengeIndex = weekNumber - 1; // Array ist 0-basiert
     
-    // Zeige Wochennummer an
-    document.getElementById('weekNumber').textContent = weekNumber;
+    // Zeige Wochennummer an mit Fehlerbehandlung
+    const weekNumberElement = document.getElementById('weekNumber');
+    if (weekNumberElement) {
+        weekNumberElement.textContent = weekNumber;
+    }
     
-    // Zeige die Herausforderung an
-    const challengeText = weeklyChallenges[challengeIndex];
-    document.getElementById('challengeText').textContent = challengeText;
+    // Zeige die Herausforderung an mit Fehlerbehandlung
+    const challengeTextElement = document.getElementById('challengeText');
+    if (challengeTextElement && weeklyChallenges[challengeIndex]) {
+        challengeTextElement.textContent = weeklyChallenges[challengeIndex];
+    } else if (challengeTextElement) {
+        challengeTextElement.textContent = 'Keine Herausforderung verfügbar.';
+    }
 }
 
 // Führe die Funktion aus, wenn die Seite geladen ist
